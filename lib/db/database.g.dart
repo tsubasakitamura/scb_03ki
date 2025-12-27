@@ -387,8 +387,14 @@ class $BagsTable extends Bags with TableInfo<$BagsTable, Bag> {
   late final GeneratedColumn<String> itemIds = GeneratedColumn<String>(
       'item_ids', aliasedName, false,
       type: DriftSqlType.string, requiredDuringInsert: true);
+  static const VerificationMeta _itemImagePathMeta =
+      const VerificationMeta('itemImagePath');
   @override
-  List<GeneratedColumn> get $columns => [id, name, itemIds];
+  late final GeneratedColumn<String> itemImagePath = GeneratedColumn<String>(
+      'item_image_path', aliasedName, true,
+      type: DriftSqlType.string, requiredDuringInsert: false);
+  @override
+  List<GeneratedColumn> get $columns => [id, name, itemIds, itemImagePath];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -414,6 +420,12 @@ class $BagsTable extends Bags with TableInfo<$BagsTable, Bag> {
     } else if (isInserting) {
       context.missing(_itemIdsMeta);
     }
+    if (data.containsKey('item_image_path')) {
+      context.handle(
+          _itemImagePathMeta,
+          itemImagePath.isAcceptableOrUnknown(
+              data['item_image_path']!, _itemImagePathMeta));
+    }
     return context;
   }
 
@@ -429,6 +441,8 @@ class $BagsTable extends Bags with TableInfo<$BagsTable, Bag> {
           .read(DriftSqlType.string, data['${effectivePrefix}name'])!,
       itemIds: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}item_ids'])!,
+      itemImagePath: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}item_image_path']),
     );
   }
 
@@ -442,13 +456,21 @@ class Bag extends DataClass implements Insertable<Bag> {
   final int id;
   final String name;
   final String itemIds;
-  const Bag({required this.id, required this.name, required this.itemIds});
+  final String? itemImagePath;
+  const Bag(
+      {required this.id,
+      required this.name,
+      required this.itemIds,
+      this.itemImagePath});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
     map['name'] = Variable<String>(name);
     map['item_ids'] = Variable<String>(itemIds);
+    if (!nullToAbsent || itemImagePath != null) {
+      map['item_image_path'] = Variable<String>(itemImagePath);
+    }
     return map;
   }
 
@@ -457,6 +479,9 @@ class Bag extends DataClass implements Insertable<Bag> {
       id: Value(id),
       name: Value(name),
       itemIds: Value(itemIds),
+      itemImagePath: itemImagePath == null && nullToAbsent
+          ? const Value.absent()
+          : Value(itemImagePath),
     );
   }
 
@@ -467,6 +492,7 @@ class Bag extends DataClass implements Insertable<Bag> {
       id: serializer.fromJson<int>(json['id']),
       name: serializer.fromJson<String>(json['name']),
       itemIds: serializer.fromJson<String>(json['itemIds']),
+      itemImagePath: serializer.fromJson<String?>(json['itemImagePath']),
     );
   }
   @override
@@ -476,19 +502,30 @@ class Bag extends DataClass implements Insertable<Bag> {
       'id': serializer.toJson<int>(id),
       'name': serializer.toJson<String>(name),
       'itemIds': serializer.toJson<String>(itemIds),
+      'itemImagePath': serializer.toJson<String?>(itemImagePath),
     };
   }
 
-  Bag copyWith({int? id, String? name, String? itemIds}) => Bag(
+  Bag copyWith(
+          {int? id,
+          String? name,
+          String? itemIds,
+          Value<String?> itemImagePath = const Value.absent()}) =>
+      Bag(
         id: id ?? this.id,
         name: name ?? this.name,
         itemIds: itemIds ?? this.itemIds,
+        itemImagePath:
+            itemImagePath.present ? itemImagePath.value : this.itemImagePath,
       );
   Bag copyWithCompanion(BagsCompanion data) {
     return Bag(
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
       itemIds: data.itemIds.present ? data.itemIds.value : this.itemIds,
+      itemImagePath: data.itemImagePath.present
+          ? data.itemImagePath.value
+          : this.itemImagePath,
     );
   }
 
@@ -497,55 +534,66 @@ class Bag extends DataClass implements Insertable<Bag> {
     return (StringBuffer('Bag(')
           ..write('id: $id, ')
           ..write('name: $name, ')
-          ..write('itemIds: $itemIds')
+          ..write('itemIds: $itemIds, ')
+          ..write('itemImagePath: $itemImagePath')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(id, name, itemIds);
+  int get hashCode => Object.hash(id, name, itemIds, itemImagePath);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Bag &&
           other.id == this.id &&
           other.name == this.name &&
-          other.itemIds == this.itemIds);
+          other.itemIds == this.itemIds &&
+          other.itemImagePath == this.itemImagePath);
 }
 
 class BagsCompanion extends UpdateCompanion<Bag> {
   final Value<int> id;
   final Value<String> name;
   final Value<String> itemIds;
+  final Value<String?> itemImagePath;
   const BagsCompanion({
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.itemIds = const Value.absent(),
+    this.itemImagePath = const Value.absent(),
   });
   BagsCompanion.insert({
     this.id = const Value.absent(),
     required String name,
     required String itemIds,
+    this.itemImagePath = const Value.absent(),
   })  : name = Value(name),
         itemIds = Value(itemIds);
   static Insertable<Bag> custom({
     Expression<int>? id,
     Expression<String>? name,
     Expression<String>? itemIds,
+    Expression<String>? itemImagePath,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (itemIds != null) 'item_ids': itemIds,
+      if (itemImagePath != null) 'item_image_path': itemImagePath,
     });
   }
 
   BagsCompanion copyWith(
-      {Value<int>? id, Value<String>? name, Value<String>? itemIds}) {
+      {Value<int>? id,
+      Value<String>? name,
+      Value<String>? itemIds,
+      Value<String?>? itemImagePath}) {
     return BagsCompanion(
       id: id ?? this.id,
       name: name ?? this.name,
       itemIds: itemIds ?? this.itemIds,
+      itemImagePath: itemImagePath ?? this.itemImagePath,
     );
   }
 
@@ -561,6 +609,9 @@ class BagsCompanion extends UpdateCompanion<Bag> {
     if (itemIds.present) {
       map['item_ids'] = Variable<String>(itemIds.value);
     }
+    if (itemImagePath.present) {
+      map['item_image_path'] = Variable<String>(itemImagePath.value);
+    }
     return map;
   }
 
@@ -569,7 +620,8 @@ class BagsCompanion extends UpdateCompanion<Bag> {
     return (StringBuffer('BagsCompanion(')
           ..write('id: $id, ')
           ..write('name: $name, ')
-          ..write('itemIds: $itemIds')
+          ..write('itemIds: $itemIds, ')
+          ..write('itemImagePath: $itemImagePath')
           ..write(')'))
         .toString();
   }
@@ -764,11 +816,13 @@ typedef $$BagsTableCreateCompanionBuilder = BagsCompanion Function({
   Value<int> id,
   required String name,
   required String itemIds,
+  Value<String?> itemImagePath,
 });
 typedef $$BagsTableUpdateCompanionBuilder = BagsCompanion Function({
   Value<int> id,
   Value<String> name,
   Value<String> itemIds,
+  Value<String?> itemImagePath,
 });
 
 class $$BagsTableFilterComposer extends Composer<_$MyDatabase, $BagsTable> {
@@ -787,6 +841,9 @@ class $$BagsTableFilterComposer extends Composer<_$MyDatabase, $BagsTable> {
 
   ColumnFilters<String> get itemIds => $composableBuilder(
       column: $table.itemIds, builder: (column) => ColumnFilters(column));
+
+  ColumnFilters<String> get itemImagePath => $composableBuilder(
+      column: $table.itemImagePath, builder: (column) => ColumnFilters(column));
 }
 
 class $$BagsTableOrderingComposer extends Composer<_$MyDatabase, $BagsTable> {
@@ -805,6 +862,10 @@ class $$BagsTableOrderingComposer extends Composer<_$MyDatabase, $BagsTable> {
 
   ColumnOrderings<String> get itemIds => $composableBuilder(
       column: $table.itemIds, builder: (column) => ColumnOrderings(column));
+
+  ColumnOrderings<String> get itemImagePath => $composableBuilder(
+      column: $table.itemImagePath,
+      builder: (column) => ColumnOrderings(column));
 }
 
 class $$BagsTableAnnotationComposer extends Composer<_$MyDatabase, $BagsTable> {
@@ -823,6 +884,9 @@ class $$BagsTableAnnotationComposer extends Composer<_$MyDatabase, $BagsTable> {
 
   GeneratedColumn<String> get itemIds =>
       $composableBuilder(column: $table.itemIds, builder: (column) => column);
+
+  GeneratedColumn<String> get itemImagePath => $composableBuilder(
+      column: $table.itemImagePath, builder: (column) => column);
 }
 
 class $$BagsTableTableManager extends RootTableManager<
@@ -851,21 +915,25 @@ class $$BagsTableTableManager extends RootTableManager<
             Value<int> id = const Value.absent(),
             Value<String> name = const Value.absent(),
             Value<String> itemIds = const Value.absent(),
+            Value<String?> itemImagePath = const Value.absent(),
           }) =>
               BagsCompanion(
             id: id,
             name: name,
             itemIds: itemIds,
+            itemImagePath: itemImagePath,
           ),
           createCompanionCallback: ({
             Value<int> id = const Value.absent(),
             required String name,
             required String itemIds,
+            Value<String?> itemImagePath = const Value.absent(),
           }) =>
               BagsCompanion.insert(
             id: id,
             name: name,
             itemIds: itemIds,
+            itemImagePath: itemImagePath,
           ),
           withReferenceMapper: (p0) => p0
               .map((e) => (e.readTable(table), BaseReferences(db, table, e)))

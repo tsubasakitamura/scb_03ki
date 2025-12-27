@@ -1,13 +1,25 @@
+// ==========================================================================
+// File: bag_manager_screen.dart
+// --------------------------------------------------------------------------
+// [バッグ管理のメイン画面：一覧・詳細・削除の切り替えを担当]
+//
+// < 目次 >
+// 1. [Enum] 画面モード定義 ........... BagMode, BagDetailOpenMode 等の定義
+// 2. [Widget] BagManagerScreen ...... メインの画面構成（Scaffold）
+// 3. [Build] UI構成メソッド ........... AppBar, Body, BottomArea 等の生成
+// 4. [Action] アクションボタン ........ 削除メニュー, アイテムボタン等
+// 5. [Dialog] ダイアログ表示 .......... 削除確認・全消去確認
+// ==========================================================================
+
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:provider/provider.dart';
+import 'package:untitled1/view/parts/bag_parts.dart';
 import 'item_manager_screen.dart';
 import '../../generated/l10n.dart';
 import '../../main.dart';
 import '../../vm/viewmodel.dart';
-import '../parts/bag_detail_part.dart';
-import '../parts/bag_grid_part.dart';
 import '../parts/common_ad_banner.dart';
 
 // --- 列挙型の定義（ここに追加することでエラーを解消します） ---

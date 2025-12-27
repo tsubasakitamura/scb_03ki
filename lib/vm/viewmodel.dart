@@ -1,3 +1,16 @@
+// ==========================================================================
+// File: viewmodel.dart
+// --------------------------------------------------------------------------
+// [アプリの状態管理とビジネスロジックを担当]
+//
+// < 目次 >
+// 1. [Properties] 状態管理用の変数（リスト・フラグ等）
+// 2. [Image/Icon] 画像選択・アイコン選択のロジック
+// 3. [Item Logic] もちもの（Item）の取得・追加・編集・削除
+// 4. [Bag Logic] バッグ（Bag）の取得・作成・更新・削除
+// 5. [Preparation] 準備状態（用意した/していない/ピン留め）の管理
+// ==========================================================================
+
 import 'dart:io';
 
 import 'package:drift/drift.dart';
@@ -227,10 +240,12 @@ class ViewModel extends ChangeNotifier {
 
   Future<void> createBag() async {
     final newBag = BagsCompanion(
-      id: Value.absent(),
-      name: Value(""),
-      itemIds: Value(""),
+      id: const Value.absent(),
+      name: const Value(""),
+      itemIds: const Value(""),
+      itemImagePath: const Value("icon:hospital_b"),
     );
+
     final currentBagId = await database.createBag(newBag);
     currentBag = await database.getBagById(currentBagId);
 
@@ -352,4 +367,15 @@ class ViewModel extends ChangeNotifier {
     }
     notifyListeners();
   }
+
+  void updateBagImage(String imagePath) {
+    if (currentBag == null) return;
+
+    // 現在のバッグ情報を新しい画像パスでコピー
+    currentBag = currentBag!.copyWith(itemImagePath: Value(imagePath));
+
+    // UIを更新
+    notifyListeners();
+  }
+
 }

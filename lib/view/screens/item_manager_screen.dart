@@ -1,3 +1,16 @@
+// ==========================================================================
+// File: item_manager_screen.dart
+// --------------------------------------------------------------------------
+// [もちもの（Item）管理画面：一覧・選択・編集・削除・追加の切り替えを担当]
+//
+// < 目次 >
+// 1. [Enum] モード定義 ............... ItemMode, DeleteType の定義
+// 2. [Widget] ItemManagerScreen ...... メイン画面（Scaffold）
+// 3. [Build] UI構成メソッド ........... AppBar, Body, Ad, FAB の生成
+// 4. [Action] アクションボタン ........ 削除メニューの生成
+// 5. [Dialog] ダイアログ表示 .......... 選択削除・全削除の確認
+// ==========================================================================
+
 import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -7,7 +20,6 @@ import 'package:untitled1/db/database.dart';
 import 'package:untitled1/main.dart';
 import 'package:untitled1/vm/viewmodel.dart';
 import '../../generated/l10n.dart';
-import '../parts/item_grid_part.dart';
 import '../parts/item_parts.dart';
 
 enum ItemMode { master, select, edit, delete, add }

@@ -13,10 +13,9 @@ part 'database.g.dart';
 
 class Items extends Table {
   IntColumn get itemId => integer().autoIncrement()();
-
   TextColumn get itemName => text()();
-
   TextColumn get itemImagePath => text()();
+
 
   /*
   * TODO[20241212]Bagテーブル追加に伴い以下の3項目は不要
@@ -33,12 +32,11 @@ class Items extends Table {
 //TODO[20241212]Bagテーブルの追加
 class Bags extends Table {
   IntColumn get id => integer().autoIncrement()();
-
   TextColumn get name => text()();
-
   //バッグにいれるもちもの（Item）のitemIdをカンマ区切りしたもの（DriftはListが保存できないので）
   //ex. 3,5 => "3, 5"
   TextColumn get itemIds => text()();
+  TextColumn get itemImagePath => text().nullable()();
 }
 
 //このコードは、スマホアプリのデータを安全に保存するためのデータベースを作るための最初のステップです。
@@ -53,9 +51,9 @@ class MyDatabase extends _$MyDatabase {
 
   // you should bump this number whenever you change or add a table definition.
   // Migrations are covered later in the documentation.
-  //TODO[20241212]Bagテーブル追加に伴う統合処理
+  //TODO[20251227]アイコン情報追加
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration {
@@ -64,6 +62,9 @@ class MyDatabase extends _$MyDatabase {
     }, onUpgrade: (Migrator m, int from, int to) async {
       if (from < 2) {
         await m.createTable(bags);
+      }
+      if (from < 3) {
+        await m.addColumn(bags, bags.itemImagePath);
       }
     });
   }
