@@ -4,7 +4,7 @@
 // [アプリの状態管理とビジネスロジックを担当]
 //
 // < 目次 >
-// 1. [Properties] 状態管理用の変数（リスト・フラグ等）
+// 1. [Properties] 状態管理用の変数
 // 2. [Image/Icon] 画像選択・アイコン選択のロジック
 // 3. [Item Logic] もちもの（Item）の取得・追加・編集・削除
 // 4. [Bag Logic] バッグ（Bag）の取得・作成・更新・削除
@@ -12,7 +12,6 @@
 // ==========================================================================
 
 import 'dart:io';
-
 import 'package:drift/drift.dart';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
@@ -24,52 +23,55 @@ import '../main.dart';
 
 class ViewModel extends ChangeNotifier {
   final MyDatabase db;
-
-  // --- 追加：アイコン管理用の変数 ---
-  String? selectedIconPath;
-
   ViewModel({required this.db});
 
-  //有効なBag(名前もアイテムも入ってるもののみ)
-  List<Bag> validBags = [];
+  // --------------------------------------------------------------------------
+  // 1. [Properties] 状態管理用の変数
+  // --------------------------------------------------------------------------
 
-  //選択されたバッグを保存
-  List<Bag> selectedBags = [];
+  // バッグ関連
+  List<Bag> validBags = [];     // 名前とアイテムが揃っている有効なバッグ
+  List<Bag> selectedBags = [];  // 削除用などで選択されたバッグ
+  List<Bag> allBags = [];       // すべてのバッグ
+  Bag? currentBag;              // 現在編集・表示中のバッグ
 
-  //もちもの全部（どのバッグに属しているかにかかわらず）
-  List<Item> allItems = [];
+  // アイテム関連
+  List<Item> allItems = [];           // 全アイテム
+  final Set<Item> selectedItems = {}; // 選択状態のアイテム
+  List<Item> unpreparedItems = [];    // 未準備リスト
+  List<Item> preparedItems = [];      // 準備済みリスト
+  final Set<int> pinnedItemIds = {};  // ピン留め（固定）されたアイテムID
 
-  //選択状態を管理
-  final Set<Item> selectedItems = {};
+  // 入力フォーム用の一時変数
+  String inputName = "";        // 入力中の名前（バッグ/アイテム共通）
+  String? selectedIconPath;     // 選択されたアイコンパス
+  File? imageFile;              // 選択された画像ファイル
 
-  //まだ用意していないもちもの（特定のバッグ）
-  List<Item> unpreparedItems = [];
+  // パッキング進捗率のゲッター (0.0 ～ 1.0)
+  double get packingProgress {
+    final total = unpreparedItems.length + preparedItems.length;
+    if (total == 0) return 0.0;
+    return preparedItems.length / total;
+  }
 
-  //用意済みのもちもの（特定のバッグ）
-  List<Item> preparedItems = [];
+  // --------------------------------------------------------------------------
+  // 2. [Image/Icon] 画像・アイコン選択ロジック
+  // --------------------------------------------------------------------------
 
-  File? imageFile;
-
-  //今HomeScreen（Bag登録画面）で扱っているBagのid
-  Bag? currentBag;
-
-  List<Bag> allBags = [];
-
-  final Set<int> pinnedItemIds = {};
-
-  bool isPinned(Item item) => pinnedItemIds.contains(item.itemId);
-
-  // --- 追加：アイコンパスをセットするメソッド ---
   void setIconPath(String path) {
     selectedIconPath = path;
-    imageFile = null; // アイコンを選んだら画像ファイルはリセット
+    imageFile = null;
     notifyListeners();
   }
 
+  void updateItemName(String name) {
+    inputName = name;
+    // テキストフィールドの入力ごとに notifyListeners を呼ぶと重いため、ここでは保持のみ
+  }
+
   Future<void> pickImage(ImageSource source) async {
-    // 画像を選び始めるので、既存の選択状態をリセット
     imageFile = null;
-    selectedIconPath = null; // ★追加：アイコン選択をリセット
+    selectedIconPath = null;
     notifyListeners();
 
     final imagePicker = ImagePicker();
@@ -77,106 +79,64 @@ class ViewModel extends ChangeNotifier {
       source: source,
       imageQuality: 15,
     );
-    if (_image == null) {
-      return;
-    }
+    if (_image == null) return;
 
     final tempImageFile = File(_image.path);
-
     final appDirectory = await getApplicationDocumentsDirectory();
     final String inAppPath = appDirectory.path;
     final itemImageName = basename(_image.path);
     final File _savedImage = await tempImageFile.copy('$inAppPath/$itemImageName');
 
     imageFile = _savedImage;
-
     notifyListeners();
   }
 
-  Future<void> updateSelectItem(
-      {required Item selectedItem, required bool isSelect}) async {
-    if (currentBag == null) return;
-
-    if (!isSelect && isPinned(selectedItem)) {
-      return;
-    }
-    final strItemIdsUpdated = _updateItemIds(selectedItem.itemId, isSelect);
-    currentBag = currentBag!.copyWith(itemIds: strItemIdsUpdated);
-    await database.updateBag(currentBag!);
-
-    allItems = await database.allItems;
-
-    final idStrings =
-    currentBag!.itemIds.split(',').where((e) => e.isNotEmpty).toList();
-    final idsInBag = idStrings.map(int.parse).toSet();
-
-    final bagItems =
-    allItems.where((item) => idsInBag.contains(item.itemId)).toList();
-
-    preparedItems = bagItems.where((item) => isPinned(item)).toList();
-    unpreparedItems = bagItems.where((item) => !isPinned(item)).toList();
-
-    notifyListeners();
-  }
-
-  String _updateItemIds(int selectedItemId, bool isSelected) {
-    final itemIdsBeforeChanged = currentBag!.itemIds;
-    final strItemIds = currentBag!.itemIds.split(",");
-    final List<int> itemIds =
-    (itemIdsBeforeChanged != "" && strItemIds.isNotEmpty)
-        ? strItemIds.map((strItemId) {
-      return int.parse(strItemId);
-    }).toList()
-        : [];
-    if (isSelected) {
-      itemIds.add(selectedItemId);
-    } else {
-      itemIds.removeWhere((itemId) => itemId == selectedItemId);
-    }
-    itemIds.sort((a, b) => a.compareTo(b));
-    final strItemIdsUpdated = itemIds
-        .toSet()
-        .toList()
-        .map((itemId) => itemId.toString())
-        .toList()
-        .join(",");
-    return strItemIdsUpdated;
-  }
-
-  Future<void> deleteAllItem() async {
-    await database.deleteAllItems();
-    getAllItem();
-    notifyListeners();
-  }
+  // --------------------------------------------------------------------------
+  // 3. [Item Logic] もちもの（Item）管理
+  // --------------------------------------------------------------------------
 
   Future<void> getAllItem() async {
     allItems = await database.allItems;
     notifyListeners();
   }
 
-  Future<void> resetItem() async {
-    unpreparedItems.addAll(preparedItems);
-    preparedItems.clear();
-    allItems = await database.allItems;
-    notifyListeners();
-  }
+  Future<void> addItem() async {
+    if (inputName.isEmpty) return;
+    final path = selectedIconPath ?? imageFile?.path ?? "icon:box";
 
-  Future<void> addItem(String itemName, String itemImagePath) async {
     final item = ItemsCompanion(
-      itemName: Value(itemName.toString()),
-      itemImagePath: Value(itemImagePath),
-      isPrepared: Value(false),
-      isSelected: Value(false),
-      isChecked: Value(false),
+      itemName: Value(inputName),
+      itemImagePath: Value(path),
+      isPrepared: const Value(false),
+      isSelected: const Value(false),
+      isChecked: const Value(false),
     );
     await database.addItem(item);
 
-    // ★追加：保存が終わったのでリセット
+    // 登録後のクリーンアップ
+    inputName = "";
     imageFile = null;
     selectedIconPath = null;
 
-    getAllItem();
-    notifyListeners();
+    await getAllItem();
+  }
+
+  Future<void> updateItem(int itemId) async {
+    final path = selectedIconPath ?? imageFile?.path ?? "icon:box";
+    final updateItem = Item(
+        itemId: itemId,
+        itemName: inputName,
+        itemImagePath: path,
+        isPrepared: false,
+        isSelected: false,
+        isChecked: false);
+    await database.updateItem(updateItem);
+
+    inputName = "";
+    imageFile = null;
+    selectedIconPath = null;
+
+    await getAllItem();
   }
 
   void addSelectedItem(Item item) {
@@ -191,6 +151,7 @@ class ViewModel extends ChangeNotifier {
 
   void clearSelectedItem() {
     selectedItems.clear();
+    notifyListeners();
   }
 
   Future<void> deleteSelectedItem() async {
@@ -201,57 +162,31 @@ class ViewModel extends ChangeNotifier {
     await getAllItem();
   }
 
-  Future<void> updateEditItem(
-      item, String itemName, String itemImagePath) async {
-    var updateItem = Item(
-        itemId: item.itemId,
-        itemName: itemName,
-        itemImagePath: itemImagePath,
-        isPrepared: false,
-        isSelected: false,
-        isChecked: false);
-    await database.updateItem(updateItem);
-
-    // ★追加：更新が終わったのでリセット
-    imageFile = null;
-    selectedIconPath = null;
-
-    getAllItem();
-    notifyListeners();
-  }
-
-  Future<void> deleteEditItem(item) async {
-    var deleteItem = Item(
-        itemId: item.itemId,
-        itemName: item.itemName,
-        itemImagePath: item.itemImagePath,
-        isPrepared: false,
-        isSelected: false,
-        isChecked: false);
-    await database.deleteItem(deleteItem);
-
-    // ★追加：削除後の状態をクリーンにする
-    imageFile = null;
-    selectedIconPath = null;
-
-    getAllItem();
-    notifyListeners();
-  }
+  // --------------------------------------------------------------------------
+  // 4. [Bag Logic] バッグ（Bag）管理
+  // --------------------------------------------------------------------------
 
   Future<void> createBag() async {
+    // 1. 現在の全アイテムの中から、ピン留めされているIDだけを抽出
+    final pinnedIds = allItems
+        .where((item) => pinnedItemIds.contains(item.itemId))
+        .map((item) => item.itemId.toString())
+        .join(',');
+
     final newBag = BagsCompanion(
       id: const Value.absent(),
       name: const Value(""),
-      itemIds: const Value(""),
+      itemIds: Value(pinnedIds), // 初期状態でピン留めアイテムを紐付け
       itemImagePath: const Value("icon:hospital_b"),
     );
 
     final currentBagId = await database.createBag(newBag);
     currentBag = await database.getBagById(currentBagId);
 
-    unpreparedItems.clear();
-    preparedItems.clear();
-    pinnedItemIds.clear();
+    // 2. 状態をリフレッシュ
+    await getBagData();
+    _refreshBagItems();
+    inputName = "";
     notifyListeners();
   }
 
@@ -269,22 +204,19 @@ class ViewModel extends ChangeNotifier {
   Future<void> getSelectedBag(int bagId) async {
     currentBag = await database.getBagById(bagId);
     allItems = await database.allItems;
+    _refreshBagItems();
+    notifyListeners();
+  }
 
-    final idStrings = currentBag!.itemIds
-        .split(',')
-        .where((e) => e.isNotEmpty)
-        .toList();
+  void _refreshBagItems() {
+    if (currentBag == null) return;
+    final idStrings = currentBag!.itemIds.split(',').where((e) => e.isNotEmpty).toList();
     final idsInBag = idStrings.map(int.parse).toSet();
 
-    final bagItems =
-    allItems.where((item) => idsInBag.contains(item.itemId)).toList();
+    final bagItems = allItems.where((item) => idsInBag.contains(item.itemId)).toList();
 
-    preparedItems =
-        bagItems.where((item) => isPinned(item)).toList();
-    unpreparedItems =
-        bagItems.where((item) => !isPinned(item)).toList();
-
-    notifyListeners();
+    preparedItems = bagItems.where((item) => isPinned(item)).toList();
+    unpreparedItems = bagItems.where((item) => !isPinned(item)).toList();
   }
 
   Future<void> deleteAllBag() async {
@@ -293,33 +225,24 @@ class ViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> deleteSelectBag() async {
-    for (var bag in selectedBags) {
-      await database.deleteBag(bag);
-      validBags.remove(bag);
-    }
-    selectedBags.clear();
+  void updateBagImage(String imagePath) {
+    if (currentBag == null) return;
+    currentBag = currentBag!.copyWith(itemImagePath: Value(imagePath));
+    database.updateBag(currentBag!);
     notifyListeners();
   }
 
-  Future<void> getAllIBag() async {
-    allBags = await database.allBags;
+  Future<void> deleteOneBag(Bag bag) async {
+    await database.deleteBag(bag);
+    validBags.remove(bag);
     notifyListeners();
   }
 
-  Future<void> resetPreparation() async {
-    final pinnedPrepared = preparedItems
-        .where((item) => pinnedItemIds.contains(item.itemId))
-        .toList();
-    final nonPinnedPrepared = preparedItems
-        .where((item) => !pinnedItemIds.contains(item.itemId))
-        .toList();
+  // --------------------------------------------------------------------------
+  // 5. [Preparation] 準備状態（パッキング）管理
+  // --------------------------------------------------------------------------
 
-    unpreparedItems = [...unpreparedItems, ...nonPinnedPrepared];
-    preparedItems = pinnedPrepared;
-
-    notifyListeners();
-  }
+  bool isPinned(Item item) => pinnedItemIds.contains(item.itemId);
 
   Future<void> toggleItemPrepared(Item item) async {
     if (unpreparedItems.contains(item)) {
@@ -332,26 +255,17 @@ class ViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<void> addValidBag(Bag bag) async {
-    if (!selectedBags.contains(bag)) {
-      selectedBags.add(bag);
-      notifyListeners();
-    }
-  }
-
-  Future<void> removeValidBag(Bag bag) async {
-    selectedBags.remove(bag);
+  Future<void> resetPreparation() async {
+    // ピン留めされていない準備済みアイテムを未準備に戻す
+    final nonPinnedPrepared = preparedItems.where((item) => !isPinned(item)).toList();
+    unpreparedItems.addAll(nonPinnedPrepared);
+    preparedItems.removeWhere((item) => !isPinned(item));
     notifyListeners();
   }
 
-  Future<void> clearSelectBag() async {
-    selectedBags.clear();
-    notifyListeners();
-  }
-
-  Future<void> deleteOneBag(Bag bag) async {
-    await database.deleteBag(bag);
-    validBags.remove(bag);
+  Future<void> resetItem() async {
+    unpreparedItems.addAll(preparedItems);
+    preparedItems.clear();
     notifyListeners();
   }
 
@@ -368,13 +282,20 @@ class ViewModel extends ChangeNotifier {
     notifyListeners();
   }
 
-  void updateBagImage(String imagePath) {
-    if (currentBag == null) return;
+  // 有効バッグ管理用
+  Future<void> addValidBag(Bag bag) async {
+    if (!selectedBags.contains(bag)) {
+      selectedBags.add(bag);
+      notifyListeners();
+    }
+  }
 
-    // 現在のバッグ情報を新しい画像パスでコピー
-    currentBag = currentBag!.copyWith(itemImagePath: Value(imagePath));
+  Future<void> removeValidBag(Bag bag) async {
+    selectedBags.remove(bag);
+    notifyListeners();
+  }
 
-    // UIを更新
+  void refresh() {
     notifyListeners();
   }
 

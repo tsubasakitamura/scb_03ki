@@ -4,10 +4,9 @@
 // [バッグ（Bag）に関連するUIパーツを統合管理するファイル]
 //
 // < 目次 >
-// 1. [Enum] BagGridDisplayMode ...... 一覧の表示モード（全消去/選択/通常）
-// 2. [Widget] BagGridPart ........... バッグ一覧（GridView）の表示
-// 3. [Widget] BagCard ............... バッグ単体のカード表示（背景画像・削除）
-// 4. [Widget] BagDetailPart ......... バッグ詳細・中身確認・名前編集・アイコン変更
+// 1. [Widget] BagGridPart ........... バッグ一覧（GridView）の表示
+// 2. [Widget] BagCard ............... バッグ単体のカード表示
+// 3. [Widget] BagDetailPart ......... バッグ詳細・中身（登録ボタンをFABへ移動）
 // ==========================================================================
 
 import 'package:flutter/material.dart';
@@ -17,14 +16,12 @@ import 'package:gap/gap.dart';
 import 'package:provider/provider.dart';
 import 'package:untitled1/db/database.dart';
 import 'package:untitled1/generated/l10n.dart';
-import 'package:untitled1/view/parts/common_parts.dart'; // さっき作った共通パーツ
+import 'package:untitled1/view/parts/common_parts.dart';
 import 'package:untitled1/view/parts/item_parts.dart';
-import 'package:untitled1/view/screens/bag_manager_screen.dart';
+import 'package:untitled1/view/screens/bag_manager_screen.dart'; // Enum参照のため
 import 'package:untitled1/view/screens/item_manager_screen.dart';
 import 'package:untitled1/vm/viewmodel.dart';
 import 'dialog_confirm.dart';
-
-enum BagGridDisplayMode { ALL, CHOOSE, NORMAL }
 
 // ==========================================
 // 1. BagGridPart: バッグの一覧表示
@@ -131,11 +128,9 @@ class BagCard extends StatelessWidget {
         elevation: 8,
         child: Stack(
           children: [
-            // 背景にアイコンまたは画像を表示
             Positioned.fill(
               child: ItemImageDisplay(path: bag.itemImagePath ?? "", size: 100),
             ),
-            // 文字を読みやすくするための半透明レイヤー
             Container(color: Colors.black26),
             Center(
               child: Padding(
@@ -147,7 +142,6 @@ class BagCard extends StatelessWidget {
                 ),
               ),
             ),
-            // チェックボックス
             if (displayCondition != BagGridDisplayMode.NORMAL)
               Positioned(
                 top: -4,
@@ -157,7 +151,7 @@ class BagCard extends StatelessWidget {
                   activeColor: Colors.blue,
                   onChanged: (value) {
                     if (displayCondition == BagGridDisplayMode.ALL) {
-                      vm.deleteAllBag(); // 全消去のロジックはViewModel側を確認
+                      vm.deleteAllBag();
                     } else {
                       value! ? vm.addValidBag(bag) : vm.removeValidBag(bag);
                     }
@@ -194,7 +188,6 @@ class BagCard extends StatelessWidget {
 // ==========================================
 // 3. BagDetailPart: バッグ詳細・中身確認
 // ==========================================
-
 class BagDetailPart extends StatefulWidget {
   final BagDetailOpenMode openMode;
   final int? bagId;
@@ -234,75 +227,58 @@ class _BagDetailPartState extends State<BagDetailPart> {
       children: [
         Container(
           color: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 8),
+          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
           child: Row(
             children: [
-              // 1. アイコンプレビューと変更ボタン
               Consumer<ViewModel>(builder: (context, vm, child) {
                 return InkWell(
-                  onTap: () => _showIconPicker(context), // アイコン選択を開く
+                  onTap: () => _showIconPicker(context),
                   child: Stack(
                     alignment: Alignment.bottomRight,
                     children: [
                       ItemImageDisplay(
                         path: vm.currentBag?.itemImagePath ?? "icon:hospital_b",
-                        size: 50, // 押しやすいサイズ
+                        size: 55,
                       ),
-                      // 編集可能であることがわかるペンマーク（任意）
                       Container(
+                        padding: const EdgeInsets.all(2),
                         decoration: const BoxDecoration(color: Colors.blue, shape: BoxShape.circle),
-                        child: const Icon(Icons.edit, size: 12, color: Colors.white),
+                        child: const Icon(Icons.edit, size: 14, color: Colors.white),
                       ),
                     ],
                   ),
                 );
               }),
-              const Gap(10),
-
-              // 2. バッグ名入力
+              const Gap(16),
               Expanded(
                 child: TextField(
                   controller: _nameController,
+                  style: const TextStyle(fontSize: 18),
                   onChanged: (val) => context.read<ViewModel>().updateBagName(val),
                   decoration: InputDecoration(
-                    hintText: S.of(context).bagNameInput,
-                    contentPadding: const EdgeInsets.symmetric(horizontal: 16),
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(20)),
+                    labelText: S.of(context).bagNameInput,
+                    hintText: "例：海外旅行、ジム用など",
+                    floatingLabelBehavior: FloatingLabelBehavior.auto,
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(15)),
                   ),
-                ),
-              ),
-              const Gap(8),
-
-              // 3. 登録ボタン
-              SizedBox(
-                width: 70,
-                child: TextButton(
-                  onPressed: () => _goBagMasterScreen(context),
-                  style: TextButton.styleFrom(
-                    backgroundColor: Colors.lightBlue,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  ),
-                  child: Text(S.of(context).register, style: const TextStyle(fontSize: 12)),
                 ),
               ),
             ],
           ),
         ),
-        const Divider(height: 1, color: Colors.black),
-
+        const Divider(height: 1, color: Colors.black12),
         _buildSectionHeader(S.of(context).unpreparedItem, isUnprepared: true),
         Expanded(
           child: Container(
             width: double.infinity,
             decoration: BoxDecoration(
               border: Border.all(color: Colors.black12),
-              color: Colors.lightBlue[100],
+              color: Colors.lightBlue[50],
             ),
             child: const ItemGridPart(displayMode: ItemGridDisplayMode.UNPREPARED),
           ),
         ),
-
         _buildSectionHeader(S.of(context).preparedItem, isUnprepared: false),
         Expanded(
           child: Container(
@@ -332,12 +308,11 @@ class _BagDetailPartState extends State<BagDetailPart> {
               mainAxisSpacing: 10,
               crossAxisSpacing: 10,
             ),
-            itemCount: globalIconMap.length, // common_parts.dartで定義したもの
+            itemCount: globalIconMap.length,
             itemBuilder: (context, index) {
               String key = globalIconMap.keys.elementAt(index);
               return InkWell(
                 onTap: () {
-                  // ViewModelを通じてバッグのアイコンパスを更新する
                   context.read<ViewModel>().updateBagImage("icon:$key");
                   Navigator.pop(context);
                 },
@@ -352,57 +327,24 @@ class _BagDetailPartState extends State<BagDetailPart> {
 
   Widget _buildSectionHeader(String title, {required bool isUnprepared}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: Row(
         children: [
-          Expanded(child: Text(title, style: const TextStyle(fontSize: 18))),
+          Expanded(child: Text(title, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold))),
           OutlinedButton(
             style: OutlinedButton.styleFrom(
               shape: const StadiumBorder(),
               side: const BorderSide(color: Colors.blue),
+              padding: const EdgeInsets.symmetric(horizontal: 12),
             ),
             onPressed: isUnprepared ? () => _confirmSelectItems() : () => _confirmReset(),
             child: Text(
               isUnprepared ? S.of(context).selection : S.of(context).reset,
-              style: const TextStyle(color: Colors.lightBlue),
+              style: const TextStyle(color: Colors.lightBlue, fontSize: 13),
             ),
           ),
         ],
       ),
-    );
-  }
-
-  void _goBagMasterScreen(BuildContext context) {
-    final vm = context.read<ViewModel>();
-    final bag = vm.currentBag;
-    final hasName = (bag?.name ?? '').trim().isNotEmpty;
-    final hasItems = (bag?.itemIds ?? '').isNotEmpty;
-
-    if (hasName && hasItems) {
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (_) => const BagManagerScreen(mode: BagMode.master)),
-            (route) => false,
-      );
-      return;
-    }
-
-    final isNew = widget.openMode == BagDetailOpenMode.NEW;
-    final String message = isNew ? S.of(context).checkSentence1 : S.of(context).checkSentence2;
-    final String continueLabel = isNew ? S.of(context).checkSentence3 : S.of(context).checkSentence4;
-
-    showConfirmDialog(
-      context: context,
-      title: message,
-      okLabel: S.of(context).checkSentence5,
-      cancelLabel: continueLabel,
-      onOk: () {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (_) => const BagManagerScreen(mode: BagMode.master)),
-              (route) => false,
-        );
-      },
     );
   }
 
@@ -411,8 +353,8 @@ class _BagDetailPartState extends State<BagDetailPart> {
       context: context,
       title: S.of(context).warming,
       content: S.of(context).warmingSentence,
-      okLabel: S.of(context).ok,       // 必須ラベルを追加
-      cancelLabel: S.of(context).cancel, // 必須ラベルを追加
+      okLabel: S.of(context).ok,
+      cancelLabel: S.of(context).cancel,
       onOk: () {
         context.read<ViewModel>().resetPreparation();
         Navigator.push(
@@ -428,12 +370,14 @@ class _BagDetailPartState extends State<BagDetailPart> {
       context: context,
       title: S.of(context).resetSentence1,
       content: S.of(context).resetSentence2,
-      okLabel: S.of(context).ok,       // 必須ラベルを追加
-      cancelLabel: S.of(context).cancel, // 必須ラベルを追加
+      okLabel: S.of(context).ok,
+      cancelLabel: S.of(context).cancel,
       onOk: () async {
         await context.read<ViewModel>().resetItem();
         Fluttertoast.showToast(msg: S.of(context).resetSentence3);
       },
     );
   }
+
+
 }

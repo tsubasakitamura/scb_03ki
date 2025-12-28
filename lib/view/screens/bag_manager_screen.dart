@@ -5,7 +5,7 @@
 //
 // < 目次 >
 // 1. [Enum] 画面モード定義 ........... BagMode, BagDetailOpenMode 等の定義
-// 2. [Widget] BagManagerScreen ...... メインの画面構成（Scaffold）
+// 2. [Widget] BagManagerScreen ...... メインの画面構成（Scaffold / FAB追加）
 // 3. [Build] UI構成メソッド ........... AppBar, Body, BottomArea 等の生成
 // 4. [Action] アクションボタン ........ 削除メニュー, アイテムボタン等
 // 5. [Dialog] ダイアログ表示 .......... 削除確認・全消去確認
@@ -15,18 +15,26 @@ import 'package:flutter/material.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:gap/gap.dart';
 import 'package:provider/provider.dart';
-import 'package:untitled1/view/parts/bag_parts.dart';
+import 'package:untitled1/view/parts/common_parts.dart';
+
+// パーツ類のインポート
+import '../parts/bag_parts.dart';
+import '../parts/common_ad_banner.dart';
+import '../parts/dialog_confirm.dart';
+
 import 'item_manager_screen.dart';
 import '../../generated/l10n.dart';
 import '../../main.dart';
 import '../../vm/viewmodel.dart';
-import '../parts/common_ad_banner.dart';
 
-// --- 列挙型の定義（ここに追加することでエラーを解消します） ---
 enum BagMode { master, detail, delete }
 enum BagDetailOpenMode { NEW, EDIT }
+enum BagGridDisplayMode { ALL, CHOOSE, NORMAL } // ここに移動
 enum DeleteType { Select, All }
 
+// --------------------------------------------------------------------------
+// 2. [Widget] BagManagerScreen
+// --------------------------------------------------------------------------
 class BagManagerScreen extends StatefulWidget {
   final BagMode mode;
   final BagDetailOpenMode? detailOpenMode;
@@ -56,7 +64,8 @@ class _BagManagerScreenState extends State<BagManagerScreen> {
         vm.getBagData();
       }
       if (widget.mode == BagMode.delete) {
-        vm.clearSelectBag();
+        vm.selectedBags.clear();
+        vm.refresh();
       }
     });
   }
@@ -82,10 +91,25 @@ class _BagManagerScreenState extends State<BagManagerScreen> {
             ],
           ),
         ),
+        // --- 修正点：詳細画面の時のみ右下にFABを表示 ---
+        floatingActionButton: widget.mode == BagMode.detail
+            ? FloatingActionButton.extended(
+          backgroundColor: Colors.lightBlue,
+          onPressed: () => _handleRegisterAction(),
+          icon: const Icon(Icons.check, color: Colors.white),
+          label: Text(
+            S.of(context).register,
+            style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          ),
+        )
+            : null,
       ),
     );
   }
 
+  // --------------------------------------------------------------------------
+  // 3. [Build] UI構成メソッド
+  // --------------------------------------------------------------------------
   PreferredSizeWidget? _buildAppBar() {
     switch (widget.mode) {
       case BagMode.delete:
@@ -106,7 +130,22 @@ class _BagManagerScreenState extends State<BagManagerScreen> {
           ],
         );
       case BagMode.detail:
-        return null;
+      // 詳細画面ではAppBarの左側を「戻る（中断）」として機能させる
+        return AppBar(
+          backgroundColor: Colors.white,
+          elevation: 1,
+          leading: IconButton(
+            icon: const Icon(Icons.close, color: Colors.black),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: Text(
+            widget.detailOpenMode == BagDetailOpenMode.NEW
+                ? S.of(context).makeBag
+                : S.of(context).itemEdit,
+            style: const TextStyle(color: Colors.black, fontSize: 18),
+          ),
+          centerTitle: true,
+        );
       case BagMode.master:
         return AppBar(
           backgroundColor: Colors.white,
@@ -124,11 +163,22 @@ class _BagManagerScreenState extends State<BagManagerScreen> {
     switch (widget.mode) {
       case BagMode.delete:
         return const BagGridPart(displayCondition: BagGridDisplayMode.CHOOSE);
+
       case BagMode.detail:
-        return BagDetailPart(
-            openMode: widget.detailOpenMode ?? BagDetailOpenMode.NEW,
-            bagId: widget.bagId
+      // --- ここを Column に書き換え ---
+        return Column(
+          children: [
+            const PackingProgressBar(), // 先ほど作成した進捗ゲージ
+            Expanded(
+              child: BagDetailPart(
+                openMode: widget.detailOpenMode ?? BagDetailOpenMode.NEW,
+                bagId: widget.bagId,
+              ),
+            ),
+          ],
         );
+    // ------------------------------
+
       case BagMode.master:
         return const BagGridPart(displayCondition: BagGridDisplayMode.NORMAL);
     }
@@ -161,6 +211,46 @@ class _BagManagerScreenState extends State<BagManagerScreen> {
         CommonAdBanner(),
         const Gap(10),
       ],
+    );
+  }
+
+  // --------------------------------------------------------------------------
+  // 4. [Action] アクションボタン & 登録ロジック
+  // --------------------------------------------------------------------------
+
+  // FABから呼ばれる登録処理（BagDetailPartから移動・統合）
+  void _handleRegisterAction() {
+    final vm = context.read<ViewModel>();
+    final bag = vm.currentBag;
+    final hasName = (bag?.name ?? '').trim().isNotEmpty;
+    final hasItems = (bag?.itemIds ?? '').isNotEmpty;
+
+    if (hasName && hasItems) {
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const BagManagerScreen(mode: BagMode.master)),
+            (route) => false,
+      );
+      return;
+    }
+
+    final isNew = widget.detailOpenMode == BagDetailOpenMode.NEW;
+    final String message = isNew ? S.of(context).checkSentence1 : S.of(context).checkSentence2;
+    final String continueLabel = isNew ? S.of(context).checkSentence3 : S.of(context).checkSentence4;
+
+    showConfirmDialog(
+      context: context,
+      title: message,
+      content: "",
+      okLabel: S.of(context).checkSentence5,
+      cancelLabel: continueLabel,
+      onOk: () {
+        Navigator.pushAndRemoveUntil(
+          context,
+          MaterialPageRoute(builder: (_) => const BagManagerScreen(mode: BagMode.master)),
+              (route) => false,
+        );
+      },
     );
   }
 
@@ -204,6 +294,9 @@ class _BagManagerScreenState extends State<BagManagerScreen> {
     );
   }
 
+  // --------------------------------------------------------------------------
+  // 5. [Dialog] ダイアログ表示
+  // --------------------------------------------------------------------------
   void _showDeleteConfirmDialog() {
     final vm = context.read<ViewModel>();
     showDialog(
@@ -215,7 +308,10 @@ class _BagManagerScreenState extends State<BagManagerScreen> {
           TextButton(
             child: Text(S.of(context).ok),
             onPressed: () async {
-              await vm.deleteSelectBag();
+              for (var bag in vm.selectedBags) {
+                await vm.deleteOneBag(bag);
+              }
+              vm.selectedBags.clear();
               Navigator.pop(context);
               Navigator.pop(context);
               Fluttertoast.showToast(msg: S.of(context).deleteSentence6);
@@ -246,4 +342,7 @@ class _BagManagerScreenState extends State<BagManagerScreen> {
       ),
     );
   }
+
+
+
 }

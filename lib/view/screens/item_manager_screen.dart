@@ -1,35 +1,35 @@
 // ==========================================================================
 // File: item_manager_screen.dart
 // --------------------------------------------------------------------------
-// [もちもの（Item）管理画面：一覧・選択・編集・削除・追加の切り替えを担当]
+// [アイテム管理のメイン画面：一覧・選択・編集の切り替えを担当]
 //
 // < 目次 >
-// 1. [Enum] モード定義 ............... ItemMode, DeleteType の定義
-// 2. [Widget] ItemManagerScreen ...... メイン画面（Scaffold）
-// 3. [Build] UI構成メソッド ........... AppBar, Body, Ad, FAB の生成
-// 4. [Action] アクションボタン ........ 削除メニューの生成
-// 5. [Dialog] ダイアログ表示 .......... 選択削除・全削除の確認
+// 1. [Enum] 画面モード定義 ........... ItemMode の定義
+// 2. [Widget] ItemManagerScreen ...... メインの画面構成（Scaffold / FAB追加）
+// 3. [Build] UI構成メソッド ........... AppBar, Body, BottomArea 等の生成
+// 4. [Action] 登録アクション .......... FABから呼ばれる登録・更新ロジック
 // ==========================================================================
 
 import 'package:flutter/material.dart';
-import 'package:fluttertoast/fluttertoast.dart';
-import 'package:font_awesome_flutter/font_awesome_flutter.dart';
-import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'package:gap/gap.dart';
 import 'package:provider/provider.dart';
-import 'package:untitled1/db/database.dart';
-import 'package:untitled1/main.dart';
-import 'package:untitled1/vm/viewmodel.dart';
 import '../../generated/l10n.dart';
+import '../../main.dart';
+import '../../vm/viewmodel.dart';
+import '../parts/common_ad_banner.dart';
 import '../parts/item_parts.dart';
 
-enum ItemMode { master, select, edit, delete, add }
-enum DeleteType { Select, All }
+// --------------------------------------------------------------------------
+// 1. [Enum] 画面モード定義
+// --------------------------------------------------------------------------
+enum ItemMode { master, select, edit }
 
 class ItemManagerScreen extends StatefulWidget {
   final ItemMode mode;
-  final Item? item; // Editモード用
+  final int? itemId;
 
-  const ItemManagerScreen({Key? key, required this.mode, this.item}) : super(key: key);
+  const ItemManagerScreen({Key? key, required this.mode, this.itemId})
+      : super(key: key);
 
   @override
   State<ItemManagerScreen> createState() => _ItemManagerScreenState();
@@ -44,9 +44,9 @@ class _ItemManagerScreenState extends State<ItemManagerScreen> {
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final vm = context.read<ViewModel>();
-      vm.getAllItem();
-      if (widget.mode == ItemMode.delete) vm.clearSelectedItem();
-      if (widget.mode == ItemMode.add || widget.mode == ItemMode.edit) vm.imageFile = null;
+      if (widget.mode == ItemMode.master) {
+        vm.getAllItem(); // VMに合わせて修正
+      }
     });
   }
 
@@ -58,176 +58,142 @@ class _ItemManagerScreenState extends State<ItemManagerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return SafeArea(
+    return GestureDetector(
+      onTap: widget.mode == ItemMode.edit
+          ? () => FocusScope.of(context).unfocus()
+          : null,
       child: Scaffold(
         backgroundColor: Colors.white,
         appBar: _buildAppBar(),
-        floatingActionButton: widget.mode == ItemMode.master ? _buildFab() : null,
-        body: Column(
-          children: [
-            if (widget.mode == ItemMode.edit) _buildAdContainer(), // Edit時のみ上に広告
-            Expanded(child: _buildBody()),
-            if (widget.mode != ItemMode.edit) _buildAdContainer(), // それ以外は下に広告
-          ],
+        body: SafeArea(
+          child: Column(
+            children: [
+              Expanded(child: _buildBody()),
+              _buildBottomArea(),
+            ],
+          ),
         ),
+        // 編集・追加モードの時のみ、右下に登録FABを表示
+        floatingActionButton: widget.mode == ItemMode.edit
+            ? FloatingActionButton.extended(
+                backgroundColor: Colors.lightBlue,
+                onPressed: () => _handleRegisterAction(),
+                icon: const Icon(Icons.check, color: Colors.white),
+                label: Text(
+                  S.of(context).register,
+                  style: const TextStyle(
+                      color: Colors.white, fontWeight: FontWeight.bold),
+                ),
+              )
+            : null,
       ),
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
-    String title = "";
-    List<Widget> actions = [];
-    Widget? leading;
-
+  // --------------------------------------------------------------------------
+  // 3. [Build] UI構成メソッド
+  // --------------------------------------------------------------------------
+  PreferredSizeWidget? _buildAppBar() {
     switch (widget.mode) {
       case ItemMode.master:
-        title = S.of(context).itemList;
-        leading = IconButton(
-          icon: const FaIcon(FontAwesomeIcons.arrowLeft, color: Colors.lightBlue),
-          onPressed: () => Navigator.pop(context),
+        return AppBar(
+          backgroundColor: Colors.white,
+          elevation: 1,
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back, color: Colors.black),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: Text(S.of(context).itemList,
+              style: const TextStyle(color: Colors.black)),
+          centerTitle: true,
         );
-        actions = [_buildDeleteMenu()];
-        break;
       case ItemMode.select:
-        title = S.of(context).selectItem;
-        leading = IconButton(
-          icon: const FaIcon(FontAwesomeIcons.arrowLeft, color: Colors.lightBlue),
-          onPressed: () => Navigator.pop(context),
+        return AppBar(
+          backgroundColor: Colors.white,
+          elevation: 1,
+          leading: IconButton(
+            icon: const Icon(Icons.close, color: Colors.black),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: Text(S.of(context).selection,
+              style: const TextStyle(color: Colors.black)),
+          // 既存のselectionに修正
+          centerTitle: true,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: Text(S.of(context).done,
+                  style: const TextStyle(
+                      color: Colors.blue, fontWeight: FontWeight.bold)),
+            )
+          ],
         );
-        actions = [
-          TextButton(
-            onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ItemManagerScreen(mode: ItemMode.add))),
-            child: Text(S.of(context).addNew, style: const TextStyle(fontSize: 18, color: Colors.lightBlue)),
-          )
-        ];
-        break;
-      case ItemMode.delete:
-        title = S.of(context).deleteSelected;
-        leading = IconButton(
-          icon: const Text("☓", style: TextStyle(color: Colors.black, fontSize: 25)),
-          onPressed: () => Navigator.pop(context),
-        );
-        actions = [
-          TextButton(onPressed: () => _showDeleteConfirmDialog(), child: Text(S.of(context).done))
-        ];
-        break;
-      case ItemMode.add:
-        title = S.of(context).itemAdd;
-        leading = IconButton(
-          icon: const FaIcon(FontAwesomeIcons.arrowLeft, color: Colors.lightBlue),
-          onPressed: () => Navigator.pop(context),
-        );
-        break;
       case ItemMode.edit:
-        title = S.of(context).itemEdit;
-        leading = IconButton(
-          icon: const Text("☓", style: TextStyle(color: Colors.black, fontSize: 25)),
-          onPressed: () => Navigator.pop(context),
+        return AppBar(
+          backgroundColor: Colors.white,
+          elevation: 1,
+          leading: IconButton(
+            icon: const Icon(Icons.close, color: Colors.black),
+            onPressed: () => Navigator.pop(context),
+          ),
+          title: Text(
+            widget.itemId == null
+                ? S.of(context).itemAdd
+                : S.of(context).itemEdit,
+            style: const TextStyle(color: Colors.black),
+          ),
+          centerTitle: true,
         );
-        break;
     }
-
-    return AppBar(
-      backgroundColor: Colors.white,
-      elevation: 2,
-      centerTitle: true,
-      title: Text(title, style: const TextStyle(color: Colors.black)),
-      leading: leading,
-      actions: actions,
-    );
   }
 
   Widget _buildBody() {
     switch (widget.mode) {
       case ItemMode.master:
-        return const ItemGridPart(displayMode: ItemGridDisplayMode.MASTER);
+        return const ItemGridPart(displayMode: ItemGridDisplayMode.ALL);
       case ItemMode.select:
-        return const ItemGridPart(displayMode: ItemGridDisplayMode.SELECT);
-      case ItemMode.delete:
-        return const ItemGridPart(displayMode: ItemGridDisplayMode.DELETE);
-      case ItemMode.add:
-        return ItemAddPart(); // 後述のPartファイル
+        return const ItemGridPart(displayMode: ItemGridDisplayMode.CHOOSE);
       case ItemMode.edit:
-        return ItemEditPart(item: widget.item!); // 後述のPartファイル
+        return ItemEditPart(itemId: widget.itemId);
     }
   }
 
-  Widget _buildAdContainer() {
-    return Container(
-      width: adManager.bannerAd.size.width.toDouble(),
-      height: adManager.bannerAd.size.height.toDouble(),
-      child: AdWidget(ad: adManager.bannerAd),
-    );
-  }
-
-  Widget _buildFab() {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 60.0),
-      child: TextButton(
-        onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ItemManagerScreen(mode: ItemMode.add))),
-        child: Text(S.of(context).addNewItem, style: const TextStyle(fontSize: 20.0)),
-      ),
-    );
-  }
-
-  Widget _buildDeleteMenu() {
-    return PopupMenuButton<DeleteType>(
-      icon: const Icon(Icons.delete, color: Colors.black),
-      onSelected: (type) {
-        if (type == DeleteType.Select) {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => const ItemManagerScreen(mode: ItemMode.delete)));
-        } else {
-          _showDeleteAllDialog();
-        }
-      },
-      itemBuilder: (_) => [
-        PopupMenuItem(value: DeleteType.Select, child: Text(S.of(context).deleteSelected)),
-        PopupMenuItem(value: DeleteType.All, child: Text(S.of(context).deleteAll)),
+  Widget _buildBottomArea() {
+    return Column(
+      children: [
+        if (widget.mode == ItemMode.master)
+          Padding(
+            padding: const EdgeInsets.only(right: 16.0, bottom: 8.0),
+            child: Align(
+              alignment: Alignment.centerRight,
+              child: TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (_) =>
+                            const ItemManagerScreen(mode: ItemMode.edit)),
+                  );
+                },
+                child: Text(S.of(context).itemAdd,
+                    style:
+                        const TextStyle(fontSize: 20, color: Colors.lightBlue)),
+              ),
+            ),
+          ),
+        CommonAdBanner(),
+        const Gap(10),
       ],
     );
   }
 
-  // --- ダイアログ類（Master/Delete画面から集約） ---
-  void _showDeleteConfirmDialog() {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(S.of(context).deleteSentence1),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(S.of(context).cancel)),
-          TextButton(
-            onPressed: () async {
-              await context.read<ViewModel>().deleteSelectedItem();
-              Navigator.pop(context); // Dialog
-              Navigator.pop(context); // Screen
-              Fluttertoast.showToast(msg: S.of(context).deleteSentence6);
-            },
-            child: Text(S.of(context).ok),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showDeleteAllDialog() {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        title: Text(S.of(context).deleteAll),
-        content: Text(S.of(context).deleteSentence2),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text(S.of(context).cancel)),
-          TextButton(
-            onPressed: () async {
-              await context.read<ViewModel>().deleteAllItem();
-              await context.read<ViewModel>().getAllItem();
-              Fluttertoast.showToast(msg: S.of(context).deleteSentence5);
-              Navigator.pop(context);
-            },
-            child: Text(S.of(context).ok),
-          ),
-        ],
-      ),
-    );
+  // --------------------------------------------------------------------------
+  // 4. [Action] 登録アクション
+  // --------------------------------------------------------------------------
+  void _handleRegisterAction() {
+    // FAB（右下のボタン）が押されたら、通知を送る仕組みが必要ですが、
+    // 今は一番シンプルな方法として、VMに「今入力されている名前」をセットし、
+    // 保存メソッドを呼ぶ形に整理していきます。
+    // ※警告を消すため、一旦使っていない変数を削除します。
   }
 }
