@@ -1,36 +1,35 @@
+// ==========================================================================
+// File: ad_manager.dart
+// --------------------------------------------------------------------------
+// [広告管理クラス：広告の初期化とインスタンス生成を担当]
+// ==========================================================================
+
 import 'dart:io';
-
-//import 'package:firebase_admob/firebase_admob.dart';
-
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 class AdManager {
-  //BannerAd? bannerAd;
-  late BannerAd bannerAd;
+  // ★ インスタンスを直接持たず、生成メソッドにする
+  // これにより、画面ごとに独立した広告IDがネイティブ側で発行され、衝突が防げます
 
   Future<void> initAdmob() {
     print("initAdmob");
-    //async無い場合はreturn文必要
     return MobileAds.instance.initialize();
-    //asyncをつけるとこれでもイケる
-    //MobileAds.instance.initialize();
   }
 
-  void initBannerAd() {
-    print("initBannerAd");
-    bannerAd = BannerAd(
+  // ★ 修正：BannerAd を作成して返す関数にする
+  BannerAd createBannerAd() {
+    return BannerAd(
       adUnitId: bannerAdUnitId,
       size: AdSize.banner,
-      request: AdRequest(),
+      request: const AdRequest(),
       listener: BannerAdListener(
-        onAdLoaded: (ad) => print("Ad Loaded: $ad")
+        onAdLoaded: (ad) => print("Ad Loaded: ${ad.adUnitId}"),
+        onAdFailedToLoad: (ad, error) {
+          print("Ad Failed to Load: $error");
+          ad.dispose(); // ロード失敗時はメモリ解放
+        },
       ),
-    );
-  }
-
-  void loadBannerAd() {
-    print("loadBannerAd");
-    bannerAd.load();
+    )..load(); // 作成と同時にロードを開始
   }
 
   static String get appId {
@@ -39,27 +38,17 @@ class AdManager {
     } else if (Platform.isIOS) {
       return "ca-app-pub-3364901739591913~8497433316";
     } else {
-      throw new UnsupportedError("Unsupported platform");
+      throw UnsupportedError("Unsupported platform");
     }
   }
 
   static String get bannerAdUnitId {
-    /*
-    * TODO 本番の広告ID
-    *  Android: ca-app-pub-3364901739591913/3273575530
-    *  iOS: ca-app-pub-3364901739591913/6992779952
-    * */
-
     if (Platform.isAndroid) {
       return "ca-app-pub-3364901739591913/3273575530";
     } else if (Platform.isIOS) {
       return "ca-app-pub-3364901739591913/6992779952";
     } else {
-      throw new UnsupportedError("Unsupported platform");
+      throw UnsupportedError("Unsupported platform");
     }
-  }
-
-  void disposeBannerAd() {
-    bannerAd.dispose();
   }
 }

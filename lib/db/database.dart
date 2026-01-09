@@ -13,29 +13,17 @@ part 'database.g.dart';
 
 class Items extends Table {
   IntColumn get itemId => integer().autoIncrement()();
-  TextColumn get itemName => text()();
+  TextColumn get itemName => text().unique()();
   TextColumn get itemImagePath => text()();
-
-
-  /*
-  * TODO[20241212]Bagテーブル追加に伴い以下の3項目は不要
-  *  => alterTableでColumnの削除はできるけど、ちょっとややこしくなりそうので
-  *     Nullableになってるから既存のデータは放っておいて、新規のデータはNullでいれる扱いにするか
-  * */
-  BoolColumn get isPrepared => boolean().nullable()();
-
-  BoolColumn get isSelected => boolean().nullable()();
-
-  BoolColumn get isChecked => boolean().nullable()();
 }
 
 //TODO[20241212]Bagテーブルの追加
 class Bags extends Table {
   IntColumn get id => integer().autoIncrement()();
   TextColumn get name => text()();
-  //バッグにいれるもちもの（Item）のitemIdをカンマ区切りしたもの（DriftはListが保存できないので）
-  //ex. 3,5 => "3, 5"
   TextColumn get itemIds => text()();
+  TextColumn get preparedItemIds => text().withDefault(const Constant(""))();
+  IntColumn get iconCode => integer().nullable()();
   TextColumn get itemImagePath => text().nullable()();
 }
 
@@ -51,9 +39,9 @@ class MyDatabase extends _$MyDatabase {
 
   // you should bump this number whenever you change or add a table definition.
   // Migrations are covered later in the documentation.
-  //TODO[20251227]アイコン情報追加
+  //TODO[20260105]アイテムネーム追加
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration {
@@ -65,6 +53,9 @@ class MyDatabase extends _$MyDatabase {
       }
       if (from < 3) {
         await m.addColumn(bags, bags.itemImagePath);
+      }
+      if (from < 4) {
+        await m.addColumn(bags, bags.iconCode);
       }
     });
   }

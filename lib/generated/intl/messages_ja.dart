@@ -22,62 +22,73 @@ class MessageLookup extends MessageLookupByLibrary {
 
   final messages = _notInlinedMessages(_notInlinedMessages);
   static Map<String, Function> _notInlinedMessages(_) => <String, Function>{
-    "addItemToList": MessageLookupByLibrary.simpleMessage("もちものを登録する"),
-    "addNew": MessageLookupByLibrary.simpleMessage("新規追加"),
-    "addNewItem": MessageLookupByLibrary.simpleMessage("新規もちもの追加"),
-    "bagList": MessageLookupByLibrary.simpleMessage("バッグ一覧"),
-    "bagNameInput": MessageLookupByLibrary.simpleMessage("バッグの名前を入力して下さい"),
-    "camera": MessageLookupByLibrary.simpleMessage("カメラ"),
-    "cancel": MessageLookupByLibrary.simpleMessage("キャンセル"),
-    "checkSentence1": MessageLookupByLibrary.simpleMessage(
-      "バッグの登録には、「バッグの名前」「もちもの」両方の入力が必要です。\nこのまま戻ると、このバッグは登録されませんがよろしいですか。",
-    ),
-    "checkSentence2": MessageLookupByLibrary.simpleMessage(
-      "「バッグの名前」あるいは「もちもの」のいずれかが削除されました。\nこのまま戻ると、このバッグが削除されますがよろしいですか。",
-    ),
-    "checkSentence3": MessageLookupByLibrary.simpleMessage("登録を続ける"),
-    "checkSentence4": MessageLookupByLibrary.simpleMessage("編集を続ける"),
-    "checkSentence5": MessageLookupByLibrary.simpleMessage("このまま戻る"),
-    "deleteAll": MessageLookupByLibrary.simpleMessage("全消去"),
-    "deleteSelected": MessageLookupByLibrary.simpleMessage("選択消去"),
-    "deleteSentence1": MessageLookupByLibrary.simpleMessage("選択したもちものを消去しますか？"),
-    "deleteSentence2": MessageLookupByLibrary.simpleMessage("もちものを全部消去しますか？"),
-    "deleteSentence3": MessageLookupByLibrary.simpleMessage("選択したバッグを消去しますか？"),
-    "deleteSentence4": MessageLookupByLibrary.simpleMessage("バッグを全部消去しますか?"),
-    "deleteSentence5": MessageLookupByLibrary.simpleMessage("全消去しました"),
-    "deleteSentence6": MessageLookupByLibrary.simpleMessage("選択消去しました"),
-    "deleteSentence7": MessageLookupByLibrary.simpleMessage("選択したバッグを消去しますか？"),
-    "done": MessageLookupByLibrary.simpleMessage("完了"),
-    "finishAdd": MessageLookupByLibrary.simpleMessage("登録が完了しました"),
-    "gallery": MessageLookupByLibrary.simpleMessage("ギャラリー"),
-    "item": MessageLookupByLibrary.simpleMessage("もちもの"),
-    "itemAdd": MessageLookupByLibrary.simpleMessage("もちもの追加"),
-    "itemChange": MessageLookupByLibrary.simpleMessage("もちものを変更する"),
-    "itemDelete0": MessageLookupByLibrary.simpleMessage("もちものを消去する"),
-    "itemDelete1": MessageLookupByLibrary.simpleMessage("消去しますか？"),
-    "itemDelete2": MessageLookupByLibrary.simpleMessage("消去しました"),
-    "itemEdit": MessageLookupByLibrary.simpleMessage("もちものの編集"),
-    "itemList": MessageLookupByLibrary.simpleMessage("全体のもちもの"),
-    "itemName": MessageLookupByLibrary.simpleMessage("もちもの名"),
-    "makeBag": MessageLookupByLibrary.simpleMessage("バッグ作成"),
-    "noItem": MessageLookupByLibrary.simpleMessage("もちものはありません"),
-    "ok": MessageLookupByLibrary.simpleMessage("実行"),
-    "preparedItem": MessageLookupByLibrary.simpleMessage("用意済みのもちもの"),
-    "register": MessageLookupByLibrary.simpleMessage("←登録"),
-    "reset": MessageLookupByLibrary.simpleMessage("リセット"),
-    "resetSentence1": MessageLookupByLibrary.simpleMessage("用意する前の状態にしていいですか？"),
-    "resetSentence2": MessageLookupByLibrary.simpleMessage(
-      "「用意済みのもちもの」を\n「まだ用意していないもちもの」へ\n移動しますか？",
-    ),
-    "resetSentence3": MessageLookupByLibrary.simpleMessage("用意する前の状態にしました"),
-    "selectImage": MessageLookupByLibrary.simpleMessage("画像を選択する"),
-    "selectItem": MessageLookupByLibrary.simpleMessage("もちもの選択"),
-    "selection": MessageLookupByLibrary.simpleMessage("選択"),
-    "tenWord": MessageLookupByLibrary.simpleMessage("10文字まで"),
-    "unpreparedItem": MessageLookupByLibrary.simpleMessage("まだ用意していないもちもの"),
-    "warming": MessageLookupByLibrary.simpleMessage("注意"),
-    "warmingSentence": MessageLookupByLibrary.simpleMessage(
-      "もちものはピン留めされたもちもの以外は、全てまだ用意していないもちものになります",
-    ),
-  };
+        "addItemToList": MessageLookupByLibrary.simpleMessage("この内容で登録する"),
+        "addNew": MessageLookupByLibrary.simpleMessage("新しく作る"),
+        "addNewItem": MessageLookupByLibrary.simpleMessage("新しいもちもの"),
+        "bagDuplicate":
+            MessageLookupByLibrary.simpleMessage("その名前のバッグは、既にリストにありますよ"),
+        "bagList": MessageLookupByLibrary.simpleMessage("バッグ一覧"),
+        "bagNameInput":
+            MessageLookupByLibrary.simpleMessage("アイテムの名前を教えてくださいね"),
+        "camera": MessageLookupByLibrary.simpleMessage("カメラ"),
+        "cancel": MessageLookupByLibrary.simpleMessage("キャンセル"),
+        "checkSentence1": MessageLookupByLibrary.simpleMessage(
+            "バッグの登録には、「名前」と「もちもの」両方教えてくださいね。\nこのまま戻ると登録されませんが、よろしいですか？"),
+        "checkSentence2": MessageLookupByLibrary.simpleMessage(
+            "名前かもちものが空っぽになっちゃいました。\nこのまま戻るとバッグが削除されますが、よろしいですか？"),
+        "checkSentence3": MessageLookupByLibrary.simpleMessage("登録をつづける"),
+        "checkSentence4": MessageLookupByLibrary.simpleMessage("編集をつづける"),
+        "checkSentence5": MessageLookupByLibrary.simpleMessage("このまま戻る"),
+        "checkSentence6":
+            MessageLookupByLibrary.simpleMessage("編集内容は保存されませんが、よろしいですか？"),
+        "deleteAll": MessageLookupByLibrary.simpleMessage("全消去"),
+        "deleteSelected": MessageLookupByLibrary.simpleMessage("選択消去"),
+        "deleteSentence1":
+            MessageLookupByLibrary.simpleMessage("選択したもちものを消去しますか？"),
+        "deleteSentence2":
+            MessageLookupByLibrary.simpleMessage("もちものを全部消去しますか？"),
+        "deleteSentence3":
+            MessageLookupByLibrary.simpleMessage("選択したバッグを消去しますか？"),
+        "deleteSentence4":
+            MessageLookupByLibrary.simpleMessage("バッグを全部消去しますか?"),
+        "deleteSentence5": MessageLookupByLibrary.simpleMessage("全部消去しました"),
+        "deleteSentence6":
+            MessageLookupByLibrary.simpleMessage("選択したものを消去しました"),
+        "deleteSentence7":
+            MessageLookupByLibrary.simpleMessage("このバッグを消去しますか？"),
+        "done": MessageLookupByLibrary.simpleMessage("完了"),
+        "finishAdd": MessageLookupByLibrary.simpleMessage("保存しました！"),
+        "gallery": MessageLookupByLibrary.simpleMessage("ギャラリー"),
+        "item": MessageLookupByLibrary.simpleMessage("もちもの"),
+        "itemAdd": MessageLookupByLibrary.simpleMessage("もちものを追加"),
+        "itemChange": MessageLookupByLibrary.simpleMessage("内容を変更する"),
+        "itemDelete0": MessageLookupByLibrary.simpleMessage("もちものを消去する"),
+        "itemDelete1": MessageLookupByLibrary.simpleMessage("消去しても大丈夫ですか？"),
+        "itemDelete2": MessageLookupByLibrary.simpleMessage("消去しました"),
+        "itemDuplicate":
+            MessageLookupByLibrary.simpleMessage("その名前のもちものは、既にリストにあります"),
+        "itemEdit": MessageLookupByLibrary.simpleMessage("もちものの編集"),
+        "itemList": MessageLookupByLibrary.simpleMessage("もちものリスト"),
+        "itemName": MessageLookupByLibrary.simpleMessage("もちものの名前"),
+        "makeBag": MessageLookupByLibrary.simpleMessage("バッグ作成"),
+        "noItem": MessageLookupByLibrary.simpleMessage("もちものがありません"),
+        "ok": MessageLookupByLibrary.simpleMessage("実行"),
+        "preparedItem": MessageLookupByLibrary.simpleMessage("用意済み"),
+        "register": MessageLookupByLibrary.simpleMessage("保存する"),
+        "reset": MessageLookupByLibrary.simpleMessage("リセット"),
+        "resetSentence1":
+            MessageLookupByLibrary.simpleMessage("用意する前の状態に戻しますか？"),
+        "resetSentence2": MessageLookupByLibrary.simpleMessage(
+            "「用意済み」のアイテムをすべて\n「まだ」の状態に移動しますか？"),
+        "resetSentence3":
+            MessageLookupByLibrary.simpleMessage("用意する前の状態に戻しました"),
+        "selectImage": MessageLookupByLibrary.simpleMessage("写真を選ぶ"),
+        "selectItem": MessageLookupByLibrary.simpleMessage("もちもの選択"),
+        "selection": MessageLookupByLibrary.simpleMessage("選ぶ"),
+        "tenWord": MessageLookupByLibrary.simpleMessage("10文字以内で教えてね"),
+        "unpreparedItem": MessageLookupByLibrary.simpleMessage("まだ用意していないもの"),
+        "warming": MessageLookupByLibrary.simpleMessage("確認"),
+        "warmingSentence": MessageLookupByLibrary.simpleMessage(
+            "ピン留めしているもの以外は、すべて「まだ用意していない」状態に戻りますよ。")
+      };
 }

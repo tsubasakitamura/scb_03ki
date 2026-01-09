@@ -18,10 +18,8 @@ class S {
   static S? _current;
 
   static S get current {
-    assert(
-      _current != null,
-      'No instance of S was loaded. Try to initialize the S delegate before accessing S.current.',
-    );
+    assert(_current != null,
+        'No instance of S was loaded. Try to initialize the S delegate before accessing S.current.');
     return _current!;
   }
 
@@ -43,10 +41,8 @@ class S {
 
   static S of(BuildContext context) {
     final instance = S.maybeOf(context);
-    assert(
-      instance != null,
-      'No instance of S present in the widget tree. Did you add S.delegate in localizationsDelegates?',
-    );
+    assert(instance != null,
+        'No instance of S present in the widget tree. Did you add S.delegate in localizationsDelegates?');
     return instance!;
   }
 
@@ -54,19 +50,154 @@ class S {
     return Localizations.of<S>(context, S);
   }
 
-  /// `Items`
-  String get item {
-    return Intl.message('Items', name: 'item', desc: '', args: []);
+  /// `Register this item`
+  String get addItemToList {
+    return Intl.message(
+      'Register this item',
+      name: 'addItemToList',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Create New`
+  String get addNew {
+    return Intl.message(
+      'Create New',
+      name: 'addNew',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `New Item`
+  String get addNewItem {
+    return Intl.message(
+      'New Item',
+      name: 'addNewItem',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `A bag with this name already exists.`
+  String get bagDuplicate {
+    return Intl.message(
+      'A bag with this name already exists.',
+      name: 'bagDuplicate',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Bag List`
   String get bagList {
-    return Intl.message('Bag List', name: 'bagList', desc: '', args: []);
+    return Intl.message(
+      'Bag List',
+      name: 'bagList',
+      desc: '',
+      args: [],
+    );
   }
 
-  /// `Make My Bag`
-  String get makeBag {
-    return Intl.message('Make My Bag', name: 'makeBag', desc: '', args: []);
+  /// `Please enter the item name.`
+  String get bagNameInput {
+    return Intl.message(
+      'Please enter the item name.',
+      name: 'bagNameInput',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Camera`
+  String get camera {
+    return Intl.message(
+      'Camera',
+      name: 'camera',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Cancel`
+  String get cancel {
+    return Intl.message(
+      'Cancel',
+      name: 'cancel',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `To register a bag, please provide both a 'Name' and 'Items'.\nIf you go back now, it won't be saved. Is that okay?`
+  String get checkSentence1 {
+    return Intl.message(
+      'To register a bag, please provide both a \'Name\' and \'Items\'.\nIf you go back now, it won\'t be saved. Is that okay?',
+      name: 'checkSentence1',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `The name or items are empty.\nIf you go back now, the bag will be deleted. Is that okay?`
+  String get checkSentence2 {
+    return Intl.message(
+      'The name or items are empty.\nIf you go back now, the bag will be deleted. Is that okay?',
+      name: 'checkSentence2',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Continue Registering`
+  String get checkSentence3 {
+    return Intl.message(
+      'Continue Registering',
+      name: 'checkSentence3',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Continue Editing`
+  String get checkSentence4 {
+    return Intl.message(
+      'Continue Editing',
+      name: 'checkSentence4',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Go Back Without Saving`
+  String get checkSentence5 {
+    return Intl.message(
+      'Go Back Without Saving',
+      name: 'checkSentence5',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Changes will not be saved. Are you sure you want to go back?`
+  String get checkSentence6 {
+    return Intl.message(
+      'Changes will not be saved. Are you sure you want to go back?',
+      name: 'checkSentence6',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Delete All`
+  String get deleteAll {
+    return Intl.message(
+      'Delete All',
+      name: 'deleteAll',
+      desc: '',
+      args: [],
+    );
   }
 
   /// `Delete Selected`
@@ -79,141 +210,251 @@ class S {
     );
   }
 
-  /// `Delete All`
-  String get deleteAll {
-    return Intl.message('Delete All', name: 'deleteAll', desc: '', args: []);
-  }
-
-  /// `Done`
-  String get done {
-    return Intl.message('Done', name: 'done', desc: '', args: []);
-  }
-
-  /// `Do you delete the selected items?`
+  /// `Delete selected items?`
   String get deleteSentence1 {
     return Intl.message(
-      'Do you delete the selected items?',
+      'Delete selected items?',
       name: 'deleteSentence1',
       desc: '',
       args: [],
     );
   }
 
-  /// `Do you delete all items？`
+  /// `Delete all items?`
   String get deleteSentence2 {
     return Intl.message(
-      'Do you delete all items？',
+      'Delete all items?',
       name: 'deleteSentence2',
       desc: '',
       args: [],
     );
   }
 
-  /// `Do you delete the selected bags?`
+  /// `Delete selected bags?`
   String get deleteSentence3 {
     return Intl.message(
-      'Do you delete the selected bags?',
+      'Delete selected bags?',
       name: 'deleteSentence3',
       desc: '',
       args: [],
     );
   }
 
-  /// `Do you delete all bags?`
+  /// `Delete all bags?`
   String get deleteSentence4 {
     return Intl.message(
-      'Do you delete all bags?',
+      'Delete all bags?',
       name: 'deleteSentence4',
       desc: '',
       args: [],
     );
   }
 
-  /// `All Deleted`
+  /// `All items deleted.`
   String get deleteSentence5 {
     return Intl.message(
-      'All Deleted',
+      'All items deleted.',
       name: 'deleteSentence5',
       desc: '',
       args: [],
     );
   }
 
-  /// `Selection Deleted`
+  /// `Deleted selected items.`
   String get deleteSentence6 {
     return Intl.message(
-      'Selection Deleted',
+      'Deleted selected items.',
       name: 'deleteSentence6',
       desc: '',
       args: [],
     );
   }
 
-  /// `Do you delete the selected bags?`
+  /// `Delete this bag?`
   String get deleteSentence7 {
     return Intl.message(
-      'Do you delete the selected bags?',
+      'Delete this bag?',
       name: 'deleteSentence7',
       desc: '',
       args: [],
     );
   }
 
-  /// `A bag name and items are required. If you go back now, this bag won’t be saved. Continue?`
-  String get checkSentence1 {
+  /// `Done`
+  String get done {
     return Intl.message(
-      'A bag name and items are required. If you go back now, this bag won’t be saved. Continue?',
-      name: 'checkSentence1',
+      'Done',
+      name: 'done',
       desc: '',
       args: [],
     );
   }
 
-  /// `The bag name or items were removed. If you go back now, this bag will be deleted. Continue?`
-  String get checkSentence2 {
+  /// `Saved!`
+  String get finishAdd {
     return Intl.message(
-      'The bag name or items were removed. If you go back now, this bag will be deleted. Continue?',
-      name: 'checkSentence2',
+      'Saved!',
+      name: 'finishAdd',
       desc: '',
       args: [],
     );
   }
 
-  /// `Continue`
-  String get checkSentence3 {
-    return Intl.message('Continue', name: 'checkSentence3', desc: '', args: []);
-  }
-
-  /// `Continue`
-  String get checkSentence4 {
-    return Intl.message('Continue', name: 'checkSentence4', desc: '', args: []);
-  }
-
-  /// `Go Back`
-  String get checkSentence5 {
-    return Intl.message('Go Back', name: 'checkSentence5', desc: '', args: []);
-  }
-
-  /// `←Register`
-  String get register {
-    return Intl.message('←Register', name: 'register', desc: '', args: []);
-  }
-
-  /// `Enter bag name.`
-  String get bagNameInput {
+  /// `Gallery`
+  String get gallery {
     return Intl.message(
-      'Enter bag name.',
-      name: 'bagNameInput',
+      'Gallery',
+      name: 'gallery',
       desc: '',
       args: [],
     );
   }
 
-  /// `Prepared Items`
+  /// `Items`
+  String get item {
+    return Intl.message(
+      'Items',
+      name: 'item',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Add Item`
+  String get itemAdd {
+    return Intl.message(
+      'Add Item',
+      name: 'itemAdd',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Update Details`
+  String get itemChange {
+    return Intl.message(
+      'Update Details',
+      name: 'itemChange',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Delete Item`
+  String get itemDelete0 {
+    return Intl.message(
+      'Delete Item',
+      name: 'itemDelete0',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Are you sure you want to discard this?`
+  String get itemDelete1 {
+    return Intl.message(
+      'Are you sure you want to discard this?',
+      name: 'itemDelete1',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Deleted.`
+  String get itemDelete2 {
+    return Intl.message(
+      'Deleted.',
+      name: 'itemDelete2',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `This item is already on the list.`
+  String get itemDuplicate {
+    return Intl.message(
+      'This item is already on the list.',
+      name: 'itemDuplicate',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Edit Item`
+  String get itemEdit {
+    return Intl.message(
+      'Edit Item',
+      name: 'itemEdit',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Item List`
+  String get itemList {
+    return Intl.message(
+      'Item List',
+      name: 'itemList',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Item Name`
+  String get itemName {
+    return Intl.message(
+      'Item Name',
+      name: 'itemName',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Create Bag`
+  String get makeBag {
+    return Intl.message(
+      'Create Bag',
+      name: 'makeBag',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `No items yet.`
+  String get noItem {
+    return Intl.message(
+      'No items yet.',
+      name: 'noItem',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Execute`
+  String get ok {
+    return Intl.message(
+      'Execute',
+      name: 'ok',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Packed`
   String get preparedItem {
     return Intl.message(
-      'Prepared Items',
+      'Packed',
       name: 'preparedItem',
+      desc: '',
+      args: [],
+    );
+  }
+
+  /// `Save`
+  String get register {
+    return Intl.message(
+      'Save',
+      name: 'register',
       desc: '',
       args: [],
     );
@@ -221,199 +462,109 @@ class S {
 
   /// `Reset`
   String get reset {
-    return Intl.message('Reset', name: 'reset', desc: '', args: []);
-  }
-
-  /// `No Items`
-  String get noItem {
-    return Intl.message('No Items', name: 'noItem', desc: '', args: []);
-  }
-
-  /// `Unprepared Items`
-  String get unpreparedItem {
     return Intl.message(
-      'Unprepared Items',
-      name: 'unpreparedItem',
+      'Reset',
+      name: 'reset',
       desc: '',
       args: [],
     );
   }
 
-  /// `Selection`
-  String get selection {
-    return Intl.message('Selection', name: 'selection', desc: '', args: []);
-  }
-
-  /// `Do you reset items？`
+  /// `Reset to unpacked state?`
   String get resetSentence1 {
     return Intl.message(
-      'Do you reset items？',
+      'Reset to unpacked state?',
       name: 'resetSentence1',
       desc: '',
       args: [],
     );
   }
 
-  /// `Do you reset prepared items \n to unprepared items？`
+  /// `Move all 'Packed' items to the 'Not Packed' list?`
   String get resetSentence2 {
     return Intl.message(
-      'Do you reset prepared items \n to unprepared items？',
+      'Move all \'Packed\' items to the \'Not Packed\' list?',
       name: 'resetSentence2',
       desc: '',
       args: [],
     );
   }
 
-  /// `Reset Items`
+  /// `Reset to unpacked state.`
   String get resetSentence3 {
     return Intl.message(
-      'Reset Items',
+      'Reset to unpacked state.',
       name: 'resetSentence3',
       desc: '',
       args: [],
     );
   }
 
-  /// `Warning`
-  String get warming {
-    return Intl.message('Warning', name: 'warming', desc: '', args: []);
-  }
-
-  /// `All items except pinned ones are treated as unprepared.`
-  String get warmingSentence {
-    return Intl.message(
-      'All items except pinned ones are treated as unprepared.',
-      name: 'warmingSentence',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Cancel`
-  String get cancel {
-    return Intl.message('Cancel', name: 'cancel', desc: '', args: []);
-  }
-
-  /// `OK`
-  String get ok {
-    return Intl.message('OK', name: 'ok', desc: '', args: []);
-  }
-
-  /// `Selected`
-  String get selectItem {
-    return Intl.message('Selected', name: 'selectItem', desc: '', args: []);
-  }
-
-  /// `Add Items`
-  String get addNew {
-    return Intl.message('Add Items', name: 'addNew', desc: '', args: []);
-  }
-
-  /// `Items List`
-  String get itemList {
-    return Intl.message('Items List', name: 'itemList', desc: '', args: []);
-  }
-
-  /// `Add Items`
-  String get addNewItem {
-    return Intl.message('Add Items', name: 'addNewItem', desc: '', args: []);
-  }
-
-  /// `Add Items`
-  String get itemAdd {
-    return Intl.message('Add Items', name: 'itemAdd', desc: '', args: []);
-  }
-
-  /// `Select Images`
+  /// `Select Photo`
   String get selectImage {
     return Intl.message(
-      'Select Images',
+      'Select Photo',
       name: 'selectImage',
       desc: '',
       args: [],
     );
   }
 
-  /// `Camera`
-  String get camera {
-    return Intl.message('Camera', name: 'camera', desc: '', args: []);
+  /// `Select Items`
+  String get selectItem {
+    return Intl.message(
+      'Select Items',
+      name: 'selectItem',
+      desc: '',
+      args: [],
+    );
   }
 
-  /// `Gallery`
-  String get gallery {
-    return Intl.message('Gallery', name: 'gallery', desc: '', args: []);
+  /// `Select`
+  String get selection {
+    return Intl.message(
+      'Select',
+      name: 'selection',
+      desc: '',
+      args: [],
+    );
   }
 
-  /// `Name of Items`
-  String get itemName {
-    return Intl.message('Name of Items', name: 'itemName', desc: '', args: []);
-  }
-
-  /// `Maximum 10 characters.`
+  /// `Within 10 characters, please.`
   String get tenWord {
     return Intl.message(
-      'Maximum 10 characters.',
+      'Within 10 characters, please.',
       name: 'tenWord',
       desc: '',
       args: [],
     );
   }
 
-  /// `Add items to list`
-  String get addItemToList {
+  /// `Not Packed Yet`
+  String get unpreparedItem {
     return Intl.message(
-      'Add items to list',
-      name: 'addItemToList',
+      'Not Packed Yet',
+      name: 'unpreparedItem',
       desc: '',
       args: [],
     );
   }
 
-  /// `Your registration is complete.`
-  String get finishAdd {
+  /// `Confirmation`
+  String get warming {
     return Intl.message(
-      'Your registration is complete.',
-      name: 'finishAdd',
+      'Confirmation',
+      name: 'warming',
       desc: '',
       args: [],
     );
   }
 
-  /// `Edit Items`
-  String get itemEdit {
-    return Intl.message('Edit Items', name: 'itemEdit', desc: '', args: []);
-  }
-
-  /// `Change Items`
-  String get itemChange {
-    return Intl.message('Change Items', name: 'itemChange', desc: '', args: []);
-  }
-
-  /// `Delete Items`
-  String get itemDelete0 {
+  /// `All items except pinned ones will be moved to 'Not Packed'.`
+  String get warmingSentence {
     return Intl.message(
-      'Delete Items',
-      name: 'itemDelete0',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Do you delete Items?`
-  String get itemDelete1 {
-    return Intl.message(
-      'Do you delete Items?',
-      name: 'itemDelete1',
-      desc: '',
-      args: [],
-    );
-  }
-
-  /// `Items are deleted.`
-  String get itemDelete2 {
-    return Intl.message(
-      'Items are deleted.',
-      name: 'itemDelete2',
+      'All items except pinned ones will be moved to \'Not Packed\'.',
+      name: 'warmingSentence',
       desc: '',
       args: [],
     );
